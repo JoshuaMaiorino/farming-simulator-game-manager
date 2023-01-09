@@ -1,6 +1,8 @@
 import { app, protocol, BrowserWindow, ipcMain, dialog, shell } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
+import settings from 'electron-settings'
+import { GameDirectory } from './utils/Settings.js'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 import path from 'path'
@@ -10,6 +12,7 @@ import path from 'path'
 import folderHelper from './utils/modFolderHelper.js'
 import modHelper from './utils/modFilesHelper.js'
 import remoteModFiles from './utils/remoteModFiles.js'
+import { copyModFolder } from './utils/ModFolder.js'
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -32,6 +35,8 @@ async function createWindow() {
   })
 
   win.setMenuBarVisibility(false)
+
+  settings.setSync(GameDirectory, 'C:\\Users\\JoshMaiorino\\OneDrive - BEMA Information Technologies LLC\\Documents\\My Games\\FarmingSimulator2022')
 
   ipcMain.handle('open-mod-folder', async(event, gameDir, moldFolderName) => {
     try{
@@ -158,11 +163,10 @@ async function createWindow() {
     }
   })
 
-  ipcMain.handle('copy-mod-folder', async (event, gameDir, name, newName) => {
+  ipcMain.handle('copy-mod-folder', async (event, name, newName) => {
+        
     try{
-      return await folderHelper.copyModFolder(gameDir, name, newName, (percentComplete) => {
-        event.sender.send('copy-mod-folder', percentComplete )
-      })
+      await copyModFolder(name, newName)
     }
     catch (err)
     {

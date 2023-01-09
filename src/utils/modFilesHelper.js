@@ -3,26 +3,22 @@ import path from 'path'
 import zip from 'adm-zip'
 import xml2js from 'xml2js'
 
-const formatSize = size => {
-    var i = Math.floor(Math.log(size) / Math.log(1024))
-    return (
-      (size / Math.pow(1024, i)).toFixed(2) * 1 +
-      ' ' +
-      ['B', 'kB', 'MB', 'GB', 'TB'][i]
-    )
-  }
+// import { ModDesc } from '@/utils/Files.js'
+import { formatSize } from '@/utils/Util.js'
 
-  const getModTitle = (modFilePath) => {
+  const getModTitle = async (modFilePath) => {
+    console.log(modFilePath)
     const modFileZip = new zip(modFilePath)
-    const modDescXml = modFileZip.getEntry('modDesc.xml')
-    let title = ''
-    xml2js.parseString(modDescXml.getData().toString("utf8"), (err, data) => {
-        if(err){ return null }
-        console.log( data )
-        title = data.modDesc.title[0].en[0]
-        console.log( 'In Function', title )
-    })
-    return title 
+    const modDescXml = modFileZip.getEntry("modDesc.xml")
+    try {
+        const data = await xml2js.parseString(modDescXml.getData().toString("utf8"))
+        return data.modDesc.title[0].en[0]
+    }
+    catch(err)
+    {
+        console.log(err)
+        return path.basename(modFilePath)
+    }
   }
 
  const listFiles = async (dir) => {
@@ -42,11 +38,11 @@ const formatSize = size => {
 // return an object with the file path and file size
 const fileAndSize = (file) => {
     const title = getModTitle(file)
-    console.log( title )
+    console.log( formatSize(fs.statSync(file).size) )
     return {
         file,
         name: path.basename( file ),
-        size: formatSize(fs.statSync(file).size),
+        size: 0,//formatSize(fs.statSync(file).size),
         title: title
     }
 }
@@ -54,7 +50,6 @@ const fileAndSize = (file) => {
 const getModFiles = async (dir) => {
 
     const files = await listFiles(dir)
-    console.log( files )
     return files.filter(f => path.extname(f) == '.zip').map(fileAndSize)
 
 }
