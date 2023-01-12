@@ -24,7 +24,6 @@ export default {
     setup(props) {
 
         const modFiles = toRef(props, 'mods')
-        const gameDir = localStorage.getItem('GameDirectory')
         const selectedMod = ref(null)
 
         const columns = ref([
@@ -34,21 +33,12 @@ export default {
   
         ]);
 
-        const formatSize = size => {
-            var i = Math.floor(Math.log(size) / Math.log(1024))
-            return (
-            (size / Math.pow(1024, i)).toFixed(2) * 1 +
-            ' ' +
-            ['B', 'kB', 'MB', 'GB', 'TB'][i]
-            )
-        }
-
         const filesDropped = async (e) => {
             console.log( e )
             console.log( props.modFolder )
             Promise.all( e.filter( f => f.type == 'application/x-zip-compressed').map( async (file) => {
-                window.electronAPI.addModFile(gameDir, props.modFolder.name, file.path).then(res => {
-                    if(res) modFiles.value.push({name: file.name, size: formatSize(file.size) })
+                window.modFile.addModFile(props.modFolder.name, file.path).then(res => {
+                    if(res) modFiles.value.push(res)
                 })    
             }))
         }

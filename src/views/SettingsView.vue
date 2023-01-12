@@ -22,31 +22,40 @@
 </template>
 
 <script>
-
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 export default {
     setup() {
         
-        const gameDir = ref(localStorage.getItem("GameDirectory"))
+        const gameDir = ref(null)
 
         const router = useRouter()
 
-        const selectGameDir = () => {
-            window.electronAPI.openDialog()
-            .then( (result) => {
-
-                if( result )
-                {
-                    gameDir.value = result
-                }
-            })
+        const selectGameDir = async () => {
+            //gameDir.value = await window.appSettings.setNewGameDirectory()
+            const newDir = await window.appSettings.openFolderDialog()
+            if( newDir ) {
+                gameDir.value = newDir
+            }
         }
 
-        const saveSettings = () => {
-            localStorage.setItem("GameDirectory", gameDir.value)
-            router.push('/')
+        onMounted( async () => {
+            gameDir.value = await window.appSettings.getGameDirectory()
+        })
+
+        const saveSettings = async () => {
+            const res = await window.appSettings.setGameDirectory( gameDir.value )
+            console.log( res )
+            if( !res )
+            {
+                router.push('/')
+            }
+            else
+            {
+                alert(res)
+            }
+            
         }
 
         return { gameDir, selectGameDir, saveSettings }

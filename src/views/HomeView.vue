@@ -8,7 +8,7 @@
       </template>
 
       <template #grid="slotProps">
-				<div class="col-12 lg:col-3 md:col-4">
+				<div class="col-12 lg:col-3 md:col-4 align-items-stretch">
 					<div class="product-grid-item card">
 						<div class="product-grid-item-top">
 							<div>
@@ -53,6 +53,11 @@
 </template>
 
 <style lang="scss" scoped>
+
+.p-grid {
+	align-items: stretch;
+	display: flex;
+}
 
 .card {
     background: #ffffff;
@@ -210,7 +215,7 @@ export default {
       currentModFolder.value = null
       
       if( gameDir.value ){
-        window.electronAPI.getAllModFolders(gameDir.value).then(
+        window.modFolder.getAll().then(
           (result) => {
             if( result )
             {
@@ -219,12 +224,11 @@ export default {
           }
         )
 
-        window.electronAPI.getCurrentModFolder(gameDir.value).then(
+        window.game.getCurrentModFolder().then(
           (result) => {
             if( result )
             {
 				currentModFolder.value = result
-				localStorage.setItem('CurrentModFolder',JSON.stringify(result))
             }
           }
         )
@@ -235,22 +239,7 @@ export default {
       loadModFolders()
     })
 
-    const selectGameDir = () => {
-      window.electronAPI.openDialog()
-      .then( (result) => {
-
-        if( result )
-        {
-          gameDir.value = result
-          localStorage.setItem("GameDirectory", result)
-
-          loadModFolders()
-          
-        }
-      })
-    }
-
-    return { selectGameDir, gameDir, modFolders, currentModFolder, layout }
+    return { gameDir, modFolders, currentModFolder, layout }
   }
 }
 </script>

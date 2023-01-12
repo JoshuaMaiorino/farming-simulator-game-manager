@@ -29,13 +29,12 @@
 
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import defaultModFolder from '@/utils/defaultModFolder.json'
+import { defaultModFolder } from '@/utils/Constants.js'
 
 export default {
     props: ['folder'],
     setup(props, { emit }) {
 
-        const gameDir = localStorage.getItem("GameDirectory")
         console.log( defaultModFolder )
 
         const isDefaultFolder = ref(props.folder && defaultModFolder.name == props.folder.name)
@@ -57,7 +56,7 @@ export default {
                 remoteUrl: remoteUrl.value
             }
 
-            window.electronAPI.updateModFolder(gameDir, modFolderName, newModFolder).then( () => {
+            window.modFolder.update(modFolderName, newModFolder).then( () => {
                 
                 if( props.folder ) {
                     emit('saved', newModFolder )

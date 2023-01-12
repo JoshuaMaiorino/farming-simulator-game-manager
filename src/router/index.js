@@ -1,8 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/NewHomeView.vue'
-import ModFolderDetailView from '@/views/NewModFolderDetailView.vue'
-import AddModFolderView from '@/views/AddModFolder.vue'
-import SettingsView from '@/views/SettingsView.vue'
+import HomeView from '@/views/HomeView.vue'
 
 const routes = [
   {
@@ -13,40 +10,23 @@ const routes = [
   {
     path: '/details',
     name: 'details',
-    component: ModFolderDetailView,
+    component: () => import(/* webpackChunckName: "details" */ '@/views/ModFolderDetailView.vue'),
   },
   {
     path: '/add',
     name: 'add',
-    component: AddModFolderView,
+    component: () => import(/* webpackChunckName: "add" */ '@/views/AddModFolder.vue'),
   },
   {
     path: '/settings',
     name: 'settings',
-    component: SettingsView
+    component: () => import(/* webpackChunckName: "settings" */ '@/views/SettingsView.vue'),
   }
-  //{
-  //  path: '/about',
-  //  name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-  //  component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-  //}
 ]
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes
-})
-
-router.beforeEach((to) => {
-  if( to.name !== 'settings' ) {
-    const gameDir = localStorage.getItem('GameDirectory')
-    if( !gameDir ){
-      return { name:'settings' }
-    }
-  }
 })
 
 export default router

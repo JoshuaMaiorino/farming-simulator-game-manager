@@ -27,14 +27,15 @@
 
 <script>
 
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConfirm } from "primevue/useconfirm";
 
 import ModFolderEdit from '@/components/ModFolderEdit.vue'
 import ModsList from '@/components/ModsList.vue'
 
-import defaultModFolder from '@/utils/defaultModFolder.json'
+import { defaultModFolder } from '@/utils/Constants.js'
+import { downloadRemoteMods as downloadRemoveModsEvent } from '@/utils/Events.js'
 
 export default {
     components: { ModFolderEdit, ModsList },
@@ -47,41 +48,32 @@ export default {
     
       const mods = ref(null)
       const modFolder = ref(null)
-      const isDefaultModFolder = ref(false)
 
-      const gameDir = localStorage.getItem("GameDirectory")
-      const currentModFolder = JSON.parse( localStorage.getItem("CurrentModFolder") )
+      const currentModFolder = ref(null)
 
-      const isCurrentMod = ref(false)
+      const isCurrentMod = computed(() => {
+        return modFolder.value && currentModFolder.value && modFolder.value.name == currentModFolder.value.name;
+      })
+      const isDefaultModFolder = computed(() => {
+        return modFolder.value && modFolder.value.name == defaultModFolder.name;
+      })
+      
       const isCopying = ref(false)
       const progressPercent = ref(0)
 
       const isDownloading = ref(false)
 
-      const refreshMods = () => {
+      const refreshMods = async () => {
         mods.value = null
         if( modFolder.value )
         {
-          window.electronAPI.getModFiles(gameDir, modFolder.value.name).then(
-            (result) => {
-              if( result )
-              {
-                mods.value = result
-                console.log(result)
-              }
-              else mods.value = [{name: 'No Mod Files Found'}]
-            }
-          )
+          mods.value = await window.modFile.getAll(modFolder.value.name)
         }
       }
 
-      const loadData = () => {
-        window.electronAPI.getModFolder(gameDir, route.query.name).then(data => {
-            modFolder.value = data
-            isCurrentMod.value = currentModFolder && data.name == currentModFolder.name
-            isDefaultModFolder.value = data.name == defaultModFolder.name
-            refreshMods()
-          })
+      const loadData = async () => {
+        currentModFolder.value = await window.game.getCurrentModFolder()
+        modFolder.value = await window.modFolder.get(route.query.name)
       }
       
       const saveMod = (newModFolder) => {
@@ -94,7 +86,7 @@ export default {
       }
 
       const openModFolder = () => {
-        window.electronAPI.openModFolder(gameDir, modFolder.value.name)
+        window.modFolder.openDirectory(modFolder.value.name)
       }
 
       const deleteModFolder = () => {
@@ -104,27 +96,25 @@ export default {
           icon: 'pi pi-info-circle',
           acceptClass: 'p-button-danger',
           accept: () => {
-            window.electronAPI.deleteModFolder(gameDir, modFolder.value.name).then( () => {
+            window.modFolder.delete(modFolder.value.name).then( () => {
               router.push({name: 'home'})
             })
           }
         })
-        
       }
 
-      const activateModFolder = () => {
-        window.electronAPI.setCurrentModFolder(gameDir, modFolder.value.name).then( () => {
-            isCurrentMod.value = true
-          })
+      const activateModFolder = async () => {
+          await window.game.setCurrentModFolder(modFolder.value.name)
+          await loadData()
       }
 
       const downloadRemoteMods = () => {
         progressPercent.value = 0
         isDownloading.value = true
-        window.electronAPI.recieveMessage('download-remote-mods', ( event, percentComplete) => {
+        window.electronAPI.recieveMessage(downloadRemoveModsEvent, ( event, percentComplete) => {
           progressPercent.value = percentComplete
         })
-        window.electronAPI.downloadRemoteMods(gameDir, modFolder.value.name).then( success => {
+        window.modFolder.downloadRemoteMods(modFolder.value.name).then( success => {
           if( success )
           {
             isDownloading.value = false
@@ -136,12 +126,10 @@ export default {
       const copyModFolder = () => {
         progressPercent.value = 0
         isCopying.value = true
-        window.electronAPI.recieveMessage('copy-mod-folder', (event, percentComplete) => {
-          progressPercent.value = percentComplete
-        })
-        window.electronAPI.copyModFolder(gameDir, modFolder.value.name, modFolder.value.name + ' - Copy' ).then( success => {
+        window.modFolder.copy(modFolder.value.name, modFolder.value.name + ' - Copy' ).then( success => {
           if( success )
           {
+            progressPercent.value = 100
             router.push( { name:'details', query: { name: modFolder.value.name + ' - Copy' }})
             modFolder.value.name = modFolder.value.name + ' - Copy'
             isCopying.value = false
@@ -151,8 +139,9 @@ export default {
         )
       }
       
-      onMounted( () => {
-          loadData()
+      onMounted( async () => {
+          await loadData()
+          refreshMods()
         })
 
         return { modFolder, mods, refreshMods, saveMod, isCurrentMod, activateModFolder, deleteModFolder, copyModFolder, downloadRemoteMods, isCopying, isDownloading, openModFolder, isDefaultModFolder, progressPercent }

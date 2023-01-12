@@ -1,15 +1,12 @@
-import { app, protocol, BrowserWindow, ipcMain, dialog, shell } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
+
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 import path from 'path'
 
-//import { getCurrentModFolder, getAllModFolders, getModFolder, updateModFolder, deleteModFolder, copyModFolder, getModFolderDir, setCurrentModFolder } from './utils/modFolderHelper.js'
-
-import folderHelper from './utils/modFolderHelper.js'
-import modHelper from './utils/modFilesHelper.js'
-import remoteModFiles from './utils/remoteModFiles.js'
+import events from '@/utils/Events'
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -33,33 +30,21 @@ async function createWindow() {
 
   win.setMenuBarVisibility(false)
 
-  ipcMain.handle('open-mod-folder', async(event, gameDir, moldFolderName) => {
-    try{
-      await shell.openPath( folderHelper.getModFolderDir(gameDir, moldFolderName) )
-      event.sender.send('open-mod-folder', 'Opened Sucessfully')
-    }catch (err)
+  //Import Event Handlers
+  for( const key in events) {
+    try {
+      const eventHandler = await import('@/events/' + key)
+      ipcMain.handle(key, async(event, ...args) => {
+        return await eventHandler.execute(win, event, ...args)
+      })
+    }
+    catch(err)
     {
-      console.log(err)
-      event.returnValue = err
+      console.log( key + ' event not implemented')
     }
-  })
+  }
 
-  ipcMain.handle('launch-game', async () => {
-    shell.openExternal('steam://rungameid//1248130')
-  })
-
-  ipcMain.handle('get-all-mod-folders', async (event, gameDir) => {
-    try{
-      const data = await folderHelper.getAllModFolders(gameDir)
-      return data
-    }
-    catch (err)
-    {
-      console.log( err )
-      event.returnValue = err
-    }
-
-  })
+/*
 
   ipcMain.handle('get-mod-files', async (event, gameDir, name) => {
     try{
@@ -83,63 +68,6 @@ async function createWindow() {
     }
   })
 
-  ipcMain.handle('get-current-mod-folder', async (event, gameDir) => {
-    try{
-      return await folderHelper.getCurrentModFolder(gameDir)
-    }
-    catch (err)
-    {
-      console.log( err )
-      event.returnValue = err
-    }
-  })
-
-  ipcMain.handle('get-mod-folder', async (event, gameDir, name) => {
-    try{
-      console.log( gameDir, name )
-      const data = await folderHelper.getModFolder( gameDir, name)
-      return data
-    }
-    catch (err)
-    {
-      console.log( err )
-      event.returnValue = err
-    }
-  })
-
-  ipcMain.handle('update-mod-folder', async (event, gameDir, name, modFolder) => {
-    try{
-      return await folderHelper.updateModFolder(gameDir, name, modFolder)
-    }
-    catch (err)
-    {
-      console.log( err )
-      event.returnValue = err
-    }
-  })
-
-  ipcMain.handle('delete-mod-folder', async (event, gameDir, name) => {
-    try{
-      return await folderHelper.deleteModFolder(gameDir, name)
-    }
-    catch (err)
-    {
-      console.log( err )
-      event.returnValue = err
-    }
-  })
-
-  ipcMain.handle('set-current-mod-folder', async (event, gameDir, name) => {
-    try{
-      return await folderHelper.setCurrentModFolder(gameDir, name)
-    }
-    catch (err)
-    {
-      console.log( err )
-      event.returnValue = err
-    }
-  })
-
   ipcMain.handle('download-remote-mods', async(event,gameDir, name) => {
     try{
       const modFolder = await folderHelper.getModFolder(gameDir, name)
@@ -147,7 +75,7 @@ async function createWindow() {
       const folderDir = await folderHelper.getModFolderDir(gameDir, name )
       if( remoteUrl )
       {
-        return await remoteModFiles(remoteUrl, folderDir, percentComplete => {
+        return await downloadMods(remoteUrl, folderDir, percentComplete => {
           event.sender.send('download-remote-mods', percentComplete)
         })
       }
@@ -158,29 +86,7 @@ async function createWindow() {
     }
   })
 
-  ipcMain.handle('copy-mod-folder', async (event, gameDir, name, newName) => {
-    try{
-      return await folderHelper.copyModFolder(gameDir, name, newName, (percentComplete) => {
-        event.sender.send('copy-mod-folder', percentComplete )
-      })
-    }
-    catch (err)
-    {
-      console.log( err )
-      event.returnValue = err
-    }
-  })
-
-  ipcMain.handle('dialog:openDirectory', async () => {
-    const { canceled, filePaths } = await dialog.showOpenDialog(win, {
-      properties: ['openDirectory']
-    })
-    if (canceled) {
-      return
-    } else {
-      return filePaths[0]
-    }
-  })
+*/
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode

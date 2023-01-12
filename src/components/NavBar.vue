@@ -30,7 +30,7 @@ export default {
             {
               label:'Launch Game (Steam)',
               command: () => {
-                window.electronAPI.launchGame()
+                window.game.launch()
               }
             }
 					]
