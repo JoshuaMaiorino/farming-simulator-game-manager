@@ -44,50 +44,6 @@ async function createWindow() {
     }
   }
 
-/*
-
-  ipcMain.handle('get-mod-files', async (event, gameDir, name) => {
-    try{
-      return await modHelper.getModFiles(folderHelper.getModFolderDir(gameDir, name))
-    }
-    catch (err)
-    {
-      console.log( err )
-      event.returnValue = err
-    }
-  })
-
-  ipcMain.handle('add-mod-file', async (event, gameDir, modFolderName, filePath) => {
-    try{
-      return await modHelper.addModFile(folderHelper.getModFolderDir(gameDir, modFolderName), filePath)
-    }
-    catch (err)
-    {
-      console.log( err )
-      event.returnValue = err
-    }
-  })
-
-  ipcMain.handle('download-remote-mods', async(event,gameDir, name) => {
-    try{
-      const modFolder = await folderHelper.getModFolder(gameDir, name)
-      const remoteUrl = modFolder.remoteUrl
-      const folderDir = await folderHelper.getModFolderDir(gameDir, name )
-      if( remoteUrl )
-      {
-        return await downloadMods(remoteUrl, folderDir, percentComplete => {
-          event.sender.send('download-remote-mods', percentComplete)
-        })
-      }
-    }
-    catch(err)
-    {
-      console.log(err)
-    }
-  })
-
-*/
-
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
     await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
