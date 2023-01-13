@@ -8,8 +8,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 contextBridge.exposeInMainWorld('appSettings', {
     setGameDirectory: (dir) => ipcRenderer.invoke(ev.setGameDirectory, dir),
     getGameDirectory: () => ipcRenderer.invoke(ev.getGameDirectory),
-    openFolderDialog: () => ipcRenderer.invoke(ev.openFolderDialog),
-    openFileDialog: () => ipcRenderer.invoke(ev.openFileDialog),
+    setGamePath:(path) => ipcRenderer.invoke(ev.setGamePath, path),
+    getGamePath: () => ipcRenderer.invoke(ev.getGamePath),
+    openDialog: (mode) => ipcRenderer.invoke(ev.openDialog, mode),
 })
 
 contextBridge.exposeInMainWorld('game', {

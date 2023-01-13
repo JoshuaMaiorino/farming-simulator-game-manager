@@ -8,8 +8,15 @@
                 <div class="field">
                     <label for="gameDir" class="mr-3">Game Directory</label>
                     <span class="p-input-icon-right w-full" @click="selectGameDir">
-                        <InputText type="gameDir" disabled v-model="gameDir" class="w-full" />
+                        <InputText id="gameDir" type="text" disabled v-model="gameDir" class="w-full" />
                         <i class="pi pi-folder" />
+                    </span>
+                </div>
+                <div class="field">
+                    <label for="gamePath" class="mr-3">Farming Simulator exe</label>
+                    <span class="p-input-icon-right w-full" @click="selectGamePath">
+                        <InputText id="gamePath" type="text" disabled v-model="gamePath" class="w-full" />
+                        <i class="pi pi-file" />
                     </span>
                 </div>
             </template>
@@ -25,40 +32,50 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { gameDirectory, gamePath as openGamePath } from '@/utils/OpenDialogModes.js'
+
 export default {
     setup() {
         
         const gameDir = ref(null)
+        const gamePath = ref(null)
 
         const router = useRouter()
 
         const selectGameDir = async () => {
-            //gameDir.value = await window.appSettings.setNewGameDirectory()
-            const newDir = await window.appSettings.openFolderDialog()
+            const newDir = await window.appSettings.openDialog(gameDirectory)
             if( newDir ) {
                 gameDir.value = newDir
             }
         }
 
+        const selectGamePath = async() => {
+            const newPath = await window.appSettings.openDialog(openGamePath)
+            if( newPath ) {
+                gamePath.value = newPath
+            }
+        }
+
         onMounted( async () => {
             gameDir.value = await window.appSettings.getGameDirectory()
+            gamePath.value = await window.appSettings.getGamePath()
         })
 
         const saveSettings = async () => {
-            const res = await window.appSettings.setGameDirectory( gameDir.value )
-            console.log( res )
-            if( !res )
+            
+            const res = await Promise.all( [window.appSettings.setGameDirectory( gameDir.value ), window.appSettings.setGamePath( gamePath.value )] )
+            if( res.filter((x) => x !== undefined).length )
             {
-                router.push('/')
+                alert(res)
             }
             else
             {
-                alert(res)
+                router.push('/')
             }
             
         }
 
-        return { gameDir, selectGameDir, saveSettings }
+        return { gameDir, selectGameDir, saveSettings, gamePath, selectGamePath }
     },
 }
 </script>

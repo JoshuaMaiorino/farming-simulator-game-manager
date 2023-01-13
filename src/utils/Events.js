@@ -12,8 +12,9 @@ const downloadRemoteMods = 'downloadRemoteMods'
 const copyModFolder = 'copyModFolder'
 const setGameDirectory = 'setGameDirectory'
 const getGameDirectory = 'getGameDirectory'
-const openFolderDialog = 'openFolderDialog'
-const openFileDialog = 'openFileDialog'
+const setGamePath = 'setGamePath'
+const getGamePath = 'getGamePath'
+const openDialog = 'openDialog'
 
 export {
     openModFolder,
@@ -30,8 +31,9 @@ export {
     copyModFolder,
     setGameDirectory,
     getGameDirectory,
-    openFolderDialog,
-    openFileDialog
+    setGamePath,
+    getGamePath,
+    openDialog
 }
 
 export default {
@@ -49,6 +51,7 @@ export default {
     copyModFolder,
     setGameDirectory,
     getGameDirectory,
-    openFolderDialog,
-    openFileDialog
+    setGamePath,
+    getGamePath,
+    openDialog
 }
