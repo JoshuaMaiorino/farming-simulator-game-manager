@@ -2,7 +2,7 @@
     <div class="max-w-30rem mx-auto mt-3">
         <Card>
             <template #title>
-                Application Seetings
+                Application Settings
             </template>
             <template #content>
                 <div class="field">
