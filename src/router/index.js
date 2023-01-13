@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
+import ModFolderDetailView from '@/views/ModFolderDetailView.vue'
+import AddModFolder from '@/views/AddModFolder.vue'
+import SettingsView from '@/views/SettingsView.vue'
 
 const routes = [
   {
@@ -10,17 +13,17 @@ const routes = [
   {
     path: '/details',
     name: 'details',
-    component: () => import(/* webpackChunckName: "details" */ '@/views/ModFolderDetailView.vue'),
+    component: ModFolderDetailView
   },
   {
     path: '/add',
     name: 'add',
-    component: () => import(/* webpackChunckName: "add" */ '@/views/AddModFolder.vue'),
+    component: AddModFolder
   },
   {
     path: '/settings',
     name: 'settings',
-    component: () => import(/* webpackChunckName: "settings" */ '@/views/SettingsView.vue'),
+    component: SettingsView,
   }
 ]
 
