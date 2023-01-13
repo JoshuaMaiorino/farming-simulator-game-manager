@@ -1,5 +1,6 @@
 <template>
-    <DataView 
+    <ConfirmDialog></ConfirmDialog>
+	<DataView 
       :value="modFolders" 
       :layout="layout"
       >
@@ -8,22 +9,23 @@
       </template>
 
       <template #grid="slotProps">
-				<div class="col-12 lg:col-3 md:col-4 align-items-stretch">
-					<div class="product-grid-item card">
+				<div class="flex align-items-stretch col-12 md:col-4 lg:col-3">
+					<div class="product-grid-item card w-full">
 						<div class="product-grid-item-top">
 							<div>
 								<i v-show="slotProps.data.remoteUrl" class="pi pi-globe product-category-icon"></i>
-								<span class="product-category">{{slotProps.data.remoteUrl}}</span>
+								<span class="product-category"></span>
 							</div>
               <span v-show="currentModFolder && currentModFolder.name == slotProps.data.name" class="product-badge status-instock">Active Folder</span>
 						</div>
 						<div class="product-grid-item-content">
-							<Avatar icon="pi pi-folder" size="xlarge" shape="circle" />
+							<Avatar icon="pi pi-folder" size="xlarge" shape="circle" style="margin:2rem 0"/>
 							<div class="product-name">{{slotProps.data.name}}</div>
 							<div class="product-description">{{slotProps.data.description}}</div>
 						</div>
 						<div class="product-grid-item-bottom">
 							<Button icon="pi pi-pencil" @click="$router.push({name: 'details', query: { name: slotProps.data.name}})"></Button>
+							<Button icon="pi pi-trash" v-if="slotProps.data.name !== 'mods'" @click="deleteModFolder(slotProps.data.name)" class="p-button-danger"></Button>
 						</div>
 					</div>
 				</div>
@@ -44,6 +46,7 @@
 						</div>
 						<div class="product-list-action">
 							<Button icon="pi pi-pencil" @click="$router.push({name: 'details', query: { name: slotProps.data.name}})"></Button>
+							<Button icon="pi pi-trash" v-if="slotProps.data.name !== 'mods'" @click="deleteModFolder(slotProps.data.name)" class="p-button-danger"></Button>
 						</div>
 					</div>
 				</div>
@@ -55,8 +58,9 @@
 <style lang="scss" scoped>
 
 .p-grid {
-	align-items: stretch;
+	align-items: center;
 	display: flex;
+	justify-content: center;
 }
 
 .card {
@@ -139,7 +143,7 @@
 	.product-grid-item-top,
 	.product-grid-item-bottom {
 		display: flex;
-		align-items: center;
+		align-items:center;
 		justify-content: space-between;
 	}
 
@@ -195,6 +199,7 @@
 
 import { ref, onMounted } from 'vue'
 
+import { useConfirm } from "primevue/useconfirm";
 
 export default {
   name: 'HomeView',
@@ -206,8 +211,22 @@ export default {
     const modFolders = ref(null)
     const currentModFolder = ref( null )
 
+	const confirm = useConfirm()
+
     //DataView
     const layout = ref('grid');
+
+	const deleteModFolder = (modFolderName) => {
+        confirm.require({
+          message: 'Do you want to delete this record?',
+          header: 'Delete Confirmation',
+          icon: 'pi pi-info-circle',
+          acceptClass: 'p-button-danger',
+          accept: () => {
+            window.modFolder.delete(modFolderName).then(loadModFolders)
+          }
+        })
+      }
 
     
     const loadModFolders = () => {
@@ -239,7 +258,7 @@ export default {
       loadModFolders()
     })
 
-    return { gameDir, modFolders, currentModFolder, layout }
+    return { gameDir, modFolders, currentModFolder, layout, deleteModFolder }
   }
 }
 </script>
