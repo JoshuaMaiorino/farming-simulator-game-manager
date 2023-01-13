@@ -2,7 +2,7 @@
   <div class="container mt-3 flex-row">
     <Toolbar>
         <template #end>
-          <Button v-if="modFolder && modFolder.remoteUrl" label="Download Mods" icon="pi pi-cloud-download" @click="downloadRemoteMods" class="p-button-info mr-2" :loading="isDownloading" :disabled="isDownloading" />
+          <SplitButton v-if="modFolder && modFolder.remoteUrl" :model="downloadOptions" label="Download Mods" icon="pi pi-cloud-download" class="p-button-info mr-2" :disabled="isDownloading" />
           <Button label="Copy" icon="pi pi-copy" @click="copyModFolder" class="p-button-info mr-2" :loading="isCopying" :disabled="isCopying" />
           <Button label="Open Mod Folder" icon="pi pi-folder-open" @click="openModFolder" class="p-button-success mr-2" />  
           <Button label="Activate Mod Folder" icon="pi pi-check" @click="activateModFolder" :disabled="isCurrentMod" class="mr-2" :class="{ 'p-button-secondary' : !isCurrentMod}" />
@@ -48,6 +48,7 @@ export default {
     
       const mods = ref(null)
       const modFolder = ref(null)
+      const forceRefresh = ref(false)
 
       const currentModFolder = ref(null)
 
@@ -108,13 +109,13 @@ export default {
           await loadData()
       }
 
-      const downloadRemoteMods = () => {
+      const downloadRemoteMods = (force=false) => {
         progressPercent.value = 0
         isDownloading.value = true
         window.electronAPI.recieveMessage(downloadRemoveModsEvent, ( event, percentComplete) => {
           progressPercent.value = percentComplete
         })
-        window.modFolder.downloadRemoteMods(modFolder.value.name).then( success => {
+        window.modFolder.downloadRemoteMods(modFolder.value.name, force).then( success => {
           if( success )
           {
             isDownloading.value = false
@@ -122,6 +123,21 @@ export default {
           }
         })
       }
+
+      const downloadOptions = ref([
+        {
+          label: 'Quick Download',
+          command: () => {
+            downloadRemoteMods()
+          }
+        },
+        {
+          label: 'Download All',
+          command: () => {
+            downloadRemoteMods(true)
+          }
+        }
+      ])
 
       const copyModFolder = () => {
         progressPercent.value = 0
@@ -144,11 +160,29 @@ export default {
           refreshMods()
         })
 
-        return { modFolder, mods, refreshMods, saveMod, isCurrentMod, activateModFolder, deleteModFolder, copyModFolder, downloadRemoteMods, isCopying, isDownloading, openModFolder, isDefaultModFolder, progressPercent }
+        return { downloadOptions, modFolder, mods, forceRefresh, refreshMods, saveMod, isCurrentMod, activateModFolder, deleteModFolder, copyModFolder, downloadRemoteMods, isCopying, isDownloading, openModFolder, isDefaultModFolder, progressPercent }
     }
 }
 </script>
 
 <style>
+  .p-checkbox .p-checkbox-box {
+    border: 2px solid #ced4da;
+    background: #ffffff;
+    width: 22px;
+    height: 22px;
+    color: #495057;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  }
 
+  .field-checkbox {
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+}
 </style>

@@ -24,6 +24,7 @@ import Column from 'primevue/column'
 import Row from 'primevue/row'
 import ConfirmDialog from 'primevue/confirmdialog'
 import ProgressBar from 'primevue/progressbar'
+import SplitButton from 'primevue/splitbutton';
 
 
 createApp(App)
@@ -44,4 +45,5 @@ createApp(App)
 .component('Column', Column)
 .component('Row', Row)
 .component('ConfirmDialog', ConfirmDialog)
+.component('SplitButton', SplitButton)
 .mount('#app')

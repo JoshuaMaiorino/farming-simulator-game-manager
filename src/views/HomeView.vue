@@ -10,7 +10,7 @@
 
       <template #grid="slotProps">
 				<div class="flex align-items-stretch col-12 md:col-4 lg:col-3">
-					<div class="product-grid-item card w-full">
+					<div class="product-grid-item card w-full" @dblclick="activateModFolder(slotProps.data.name)">
 						<div class="product-grid-item-top">
 							<div>
 								<i v-show="slotProps.data.remoteUrl" class="pi pi-globe product-category-icon"></i>
@@ -19,20 +19,22 @@
               <span v-show="currentModFolder && currentModFolder.name == slotProps.data.name" class="product-badge status-instock">Active Folder</span>
 						</div>
 						<div class="product-grid-item-content">
-							<Avatar icon="pi pi-folder" size="xlarge" shape="circle" style="margin:2rem 0"/>
+							<Avatar icon="pi pi-folder" size="xlarge" shape="circle" style="margin:2rem 0" />
 							<div class="product-name">{{slotProps.data.name}}</div>
 							<div class="product-description">{{slotProps.data.description}}</div>
 						</div>
 						<div class="product-grid-item-bottom">
 							<Button icon="pi pi-pencil" @click="$router.push({name: 'details', query: { name: slotProps.data.name}})"></Button>
-							<Button icon="pi pi-trash" v-if="slotProps.data.name !== 'mods'" @click="deleteModFolder(slotProps.data.name)" class="p-button-danger"></Button>
+							<Button icon="pi pi-cloud-download" v-if="slotProps.data.remoteUrl" @click="refreshModFolder(slotProps.data)" class="p-button-info" :loading="slotProps.data.isDownloading"></Button>
+							<Button icon="pi pi-copy" @click="copyModFolder(slotProps.data.name)" class="p-button-info"></Button>
+							<Button icon="pi pi-trash" v-if="slotProps.data.name !== 'mods' && currentModFolder.name != slotProps.data.name" @click="deleteModFolder(slotProps.data.name)" class="p-button-danger"></Button>
 						</div>
 					</div>
 				</div>
 			</template>
 
       <template #list="slotProps">
-				<div class="col-12">
+				<div class="col-12" @dblclick="activateModFolder(slotProps.data.name)">
 					<div class="product-list-item">
 						<Avatar icon="pi pi-folder" size="xlarge" shape="circle" />
 						<div class="product-list-detail">
@@ -133,6 +135,7 @@
 
 	.p-button {
 		margin-bottom: .5rem;
+		margin-right: .5rem;
 	}
 }
 
@@ -144,7 +147,11 @@
 	.product-grid-item-bottom {
 		display: flex;
 		align-items:center;
-		justify-content: space-between;
+		justify-content:left;
+	}
+
+	.product-grid-item-bottom .p-button {
+		margin-right: .5rem;
 	}
 
 	img {
@@ -228,7 +235,23 @@ export default {
         })
       }
 
-    
+	const activateModFolder = (modFolderName) => {
+		window.game.setCurrentModFolder(modFolderName).then(() => {
+			loadModFolders()
+		})
+	}
+
+    const copyModFolder = async (modFolderName) => {
+		await window.modFolder.copy(modFolderName, modFolderName + ' - copy')
+		loadModFolders()	
+	}
+
+	const refreshModFolder = async (modFolder) => {
+		modFolder.isDownloading = true
+		await window.modFolder.downloadRemoteMods(modFolder.name)
+		modFolder.isDownloading = false
+	}
+
     const loadModFolders = () => {
       modFolders.value = null
       currentModFolder.value = null
@@ -238,7 +261,7 @@ export default {
           (result) => {
             if( result )
             {
-              modFolders.value = result
+              modFolders.value = result.map(mf => ({ ...mf, isDownloading: false }))
             }
           }
         )
@@ -258,7 +281,7 @@ export default {
       loadModFolders()
     })
 
-    return { gameDir, modFolders, currentModFolder, layout, deleteModFolder }
+    return { gameDir, modFolders, currentModFolder, layout, deleteModFolder, activateModFolder, copyModFolder, refreshModFolder }
   }
 }
 </script>
