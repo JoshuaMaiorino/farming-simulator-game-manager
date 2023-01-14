@@ -5,6 +5,9 @@
 npm install
 ```
 
+After Install, apply the following change.  This is due to a compalitiy issue in webpack and electron builder
+https://github.com/nklayman/vue-cli-plugin-electron-builder/issues/1574#issuecomment-1319704014
+
 ### Compiles and hot-reloads for development
 ```
 npm run electron:serve
